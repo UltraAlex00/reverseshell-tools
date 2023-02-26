@@ -5,8 +5,8 @@ A simple tool to start a TCP reverse shell on the victoms mashine and run some p
 # Commands
 **/help** - shows all commands
 
-**/exit** (old **/stop**) - shuts down the program and exits the reverse shell  *[BETA 1]*
+**/exit** (old **/stop**) - shuts down the program and exits the reverse shell  *[BETA 1+]*
 
-**/upload [FileName]** - uploads selected file on Anonfiles  *[BETA 1]*
+**/upload [FileName]** - uploads selected file on Anonfiles  *[BETA 1+]*
 
-**/download [Uri] [FileName]** - downloads a file from the web *[BETA 2]*
+**/download [Uri] [FileName]** - downloads a file from the web *[BETA 2+]*
