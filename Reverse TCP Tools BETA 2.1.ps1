@@ -41,8 +41,7 @@ function InvokeCustomCommands ($Action)
 		catch { WriteToStream "Error Downloading!" }
 	}
 	
-	else { WriteToStream "Invalid Command!" }
-	
+	if ($SplitAction[0] -notin @("help", "exit", "upload", "download")) { WriteToStream "Invalid Command!" }
 }
 
 function WriteToStream ($String)
