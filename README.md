@@ -10,3 +10,5 @@ A simple tool to start a TCP reverse shell on the victoms mashine and run some p
 **/upload [FileName]** - uploads selected file on Anonfiles  *[BETA 1+]*
 
 **/download [Uri] [FileName]** - downloads a file from the web *[BETA 2+]*
+
+**/server <set [IP]>** - shows or sets the listener IP (the IP is stored in listener.txt) *[BETA 3+]*
