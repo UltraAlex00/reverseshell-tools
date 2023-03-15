@@ -4,9 +4,7 @@ A simple tool to start a TCP reverse shell on the victoms mashine and run some p
 
 # Commands
 
-**<optional> [necessary] (/ is or)**
-  
-  
+**<optional> [necessary] (/ is or)** 
 
 **/help** - shows all commands [*BETA 2+*]
 
