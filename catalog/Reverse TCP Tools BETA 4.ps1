@@ -1,4 +1,4 @@
-﻿#v1.0
+﻿#vBETA 4
 
 try { Get-Content -Path ((Get-Item $PSCommandPath).DirectoryName + "\listener.txt") -ErrorAction Stop | ForEach-Object { $server = $_ } }
 catch
