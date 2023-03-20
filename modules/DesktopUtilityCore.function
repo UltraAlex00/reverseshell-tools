@@ -1,0 +1,101 @@
+﻿#DesktopUtilityCore
+#1.0
+#@{"open" = "[FileName] opens a file"; "fcopy" = "[FileName],<FileName> [Destination] copy a file"; "rename" = "[FileName] [NewName] renames a file"; "remove" = "[FileName],<FileName> removes a file"; "zip" = "[FileName],<FileName> [ArchiveName] adds a file to an archive"; "unzip" = "[FileName] [FolderName] extracts a file form an archive"; "setwallpaper" = "[FileName] sets the desktop background"}
+#""
+
+function open ($file)
+{
+	$file = $file.Replace("~", " ")
+	
+	if (Test-Path $file)
+	{
+		explorer $file
+		WriteTCPMessage ("`n$file Opened!`n")
+	}
+	else { WriteTCPMesage "`nFile Not Found!`n" }
+	
+	Remove-Variable file -ErrorAction SilentlyContinue
+}
+
+function fcopy ($files, $destination)
+{
+	$files = $files.Replace("~", " ")
+	$files = $files.Split(",")
+	$destination = $destination.Replace("~", " ")
+	try
+	{
+		if ((Get-Item $destination).Extension -ne "") { Write-Error "" }
+		Copy-Item -Path $files -Destination $destination -Force
+		WriteTCPMessage "`nCopy Sucessfull!`n"
+	}
+	catch { "`nCopy Failed!`n" }
+	Remove-Variable files, destination -ErrorAction SilentlyContinue
+}
+
+function rename ($file, $newname)
+{
+	$file = $file.Replace("~", " ")
+	$newname = $newname.Replace("~", " ")
+	try
+	{
+		Rename-Item -Path $file -NewName $destination -Force
+		WriteTCPMessage "`nRename Sucessfull!`n"
+	}
+	catch { "`nRename Failed!`n" }
+	Remove-Variable file, newname -ErrorAction SilentlyContinue
+}
+
+function remove ($files)
+{
+	$files = $files.Replace("~", " ")
+	$files = $files.Split(",")
+	try
+	{
+		Remove-Item -Path $files -Force
+		WriteTCPMessage "`nSucessfully Removed!`n"
+	}
+	catch {WriteTCPMessage "`nRemove Failed!`n"}
+	Remove-Variable files -ErrorAction SilentlyContinue	
+}
+
+function zip ($files, $zipname, [switch]$compress)
+{
+	$files = $files.Replace("~", " ")
+	$zipname = $zipname.Replace("~", " ")
+	$files = $files.Split(",")
+	try
+	{
+		Compress-Archive -Path $files -DestinationPath $destination -CompressionLevel (if ($compress) { Optimal } else { NoCompression })
+		WriteTCPMessage "`nSucessfully Compressed To $zipname!`n"
+	}
+	catch { WriteTCPMessage "`nFailed Compressing!`n" }
+	Remove-Variable files, zipname -ErrorAction SilentlyContinue
+}
+
+function unzip ($file, $folder)
+{
+	$file = $files.Replace("~", " ")
+	$folder = $folder.Replace("~", " ")
+	
+	try
+	{
+		Expand-Archive -Path $file -DestinationPath "$PSCommandPath\$destination"
+		WriteTCPMessage "`nDecompressed in $destination`n"
+	}
+	catch { WriteTCPMessage "`nDecompress Failed!" }
+	Remove-Variable file, folder -ErrorAction SilentlyContinue
+}
+
+function setwallpaper ($file)
+{
+	try
+	{
+		$file = $file.Replace("~", " ")
+		$file = (Get-Item $file).FullName
+		Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\' -Name Wallpaper -Value $file
+		rundll32.exe user32.dll, UpdatePerUserSystemParameters
+		WriteTCPMessage "`nWallpaper Set!`n"
+	}
+	catch { WriteTCPMessage "`nFailed Setting Wallpaper!" }
+	Remove-Variable file -ErrorAction SilentlyContinue
+}

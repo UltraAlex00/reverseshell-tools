@@ -1,0 +1,16 @@
+﻿#Downloader
+#1.1
+#@{"download" = "[Uri] [OutFileName] Downloads a file from the web"}
+#""
+
+function download ($downloaduri, $downloadfile)
+{
+	try
+	{
+		Invoke-WebRequest -Uri $downloaduri -OutFile $downloadfile
+		WriteTCPMessage ("`nSucessfully Saved in: " + (Get-Item $downloadfile).FullName + "`n")
+	}
+	catch { WriteTCPMessage "`nDownload Failed!`n" }
+	
+	Remove-Variable downloaduri, downloadfile -ErrorAction SilentlyContinue
+}

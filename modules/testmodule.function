@@ -1,0 +1,10 @@
+#TestModule
+#1.0
+#@{"testmodule" = "help sample is loaded"}
+#Write-Host "Hello World"
+
+function testmodule
+{
+	WriteTCPMessage "Deez Nuts"
+	WriteTCPMessage "Penis"
+}

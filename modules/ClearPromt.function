@@ -1,0 +1,9 @@
+#ClearPromt
+#1.0
+#@{"clpr" = "cleans the listener window"}
+#WriteTCPMessage ("`n"*29) -NoCommand
+
+function clpr 
+{
+	WriteTCPMessage ("`n"*29)
+}
