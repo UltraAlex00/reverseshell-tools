@@ -1,0 +1,1 @@
+CreateObject("WScript.Shell").Run "powershell -ExecutionPolicy bypass -file """ & CreateObject("WScript.Shell").CurrentDirectory & "\active.ps1""", 0
