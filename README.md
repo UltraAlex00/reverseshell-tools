@@ -2,28 +2,14 @@
 
 A simple tool to start a TCP reverse shell on the victoms mashine and run some pre-build commands.
 
-# Commands
+# Usage
 
-**<optional<x>>ㅤㅤㅤㅤㅤㅤㅤㅤ [necessary] ㅤㅤㅤㅤㅤㅤㅤㅤ(/ is or)** 
+1. Start a Listener Server (netcat: nc.exe -lp [port]) ; if you want tartget other pc's you need to forward your port
 
----
+2. Start active.ps1 using powershell (if ExecutionPolicy is prohibited: edit the loader.vbs and change the 0 to 1 and run loader.vbs instead)
 
-**/help** - shows all commands [*BETA 2+*]
+3. If you starting this script for the first time, it will ask you for the listener ip and port, so enter it (will be saved in listener.txt)
 
-**/exit** (old **/stop**) - shuts down the program and exits the reverse shell  *[BETA 1+]*
+(4.) Change the 1 back to 0 (there is no problem changing it while the script is beeing executed)
 
-**/upload [FileName]** - uploads selected file on Anonfiles  *[BETA 1+]*
-
-**/download [Uri] [FileName]** - downloads a file from the web *[BETA 2+]*
-
-**/server <set [IP]>** - shows or sets the listener IP (the IP is stored in listener.txt) *[BETA 3+]*
-
-**/ver <list <git> / <update [FileName] / git [VersionName]>** - shows advible or updates the client *[BETA 4+]*
-
-**/restart** - restarts the script *[BETA 4+]*
-
-# Usage [BETA 4]
-
-Running **loader.vbs** will run the script in the background
-
-Using **/restart** will automaticly create the loader.vbs and run the script in the background 
+5. The Script should be now connected to the listener, type "/restart" to create the autostart files
