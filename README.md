@@ -13,3 +13,5 @@ A simple tool to start a TCP reverse shell on the victoms mashine and run some p
 4. [?] Change the 1 back to 0 (there is no problem changing it while the script is beeing executed)
 
 5. The Script should be now connected to the listener, type "/restart" to create the autostart files
+
+6. [?] Type "/help" for further instruction
