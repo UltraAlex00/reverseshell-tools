@@ -1,4 +1,4 @@
-#1.0.1
+#1.0
 
 try { Get-Content -Path ((Get-Item $PSCommandPath).DirectoryName + "\listener.txt") -ErrorAction Stop | ForEach-Object { $server = $_ } }
 catch
@@ -221,22 +221,22 @@ Internal:
 
 External:
 " -NoCommand
-			WriteTCPMessage ((Invoke-Command { foreach ($moduleindex in $loadedmodules.Keys) { ("`n/" + $moduleindex + " " + $loadedmodules[$moduleindex]) } } ) + "`n")
+			WriteTCPMessage ((Invoke-Command { foreach ($moduleindex in $loadedmodules.Keys) { ("`n/" + $moduleindex + " " + $loadedmodules[$moduleindex]) } }) + "`n")
 		}
 		else
 		{
 			try { WriteTCPMessage ("`n/" + $SplitAction[1] + " " + $loadedmodules[$SplitAction[1]] + "`n") }
 			catch { WriteTCPMessage "Module Not Found!`n" }
 		}
-		#loaded modules
-		if ($SplitAction[0] -notin @("server", "module", "ver", "help", "restart"))
+	}
+	#loaded modules
+	if ($SplitAction[0] -notin @("server", "module", "ver", "help", "restart"))
+	{
+		if ($SplitAction[0] -in $loadedmodules.Keys)
 		{
-			if ($SplitAction[0] -in $loadedmodules.Keys)
-			{
-				Invoke-Expression ([string]$SplitAction)
-			}
-			else { WriteTCPMessage "`nInvalid Command!`n" }
+			Invoke-Expression ([string]$SplitAction)
 		}
+		else { WriteTCPMessage "`nInvalid Command!`n" }
 	}
 }
 WriteTCPMessage ''
