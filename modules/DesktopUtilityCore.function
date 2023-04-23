@@ -1,18 +1,36 @@
-﻿#DesktopUtilityCore
-#1.0
-#@{"open" = "[FileName] opens a file"; "fcopy" = "[FileName],<FileName> [Destination] copy a file"; "rename" = "[FileName] [NewName] renames a file"; "remove" = "[FileName],<FileName> removes a file"; "zip" = "[FileName],<FileName> [ArchiveName] adds a file to an archive"; "unzip" = "[FileName] [FolderName] extracts a file form an archive"; "setwallpaper" = "[FileName] sets the desktop background"}
-#""
+#DesktopUtilityCore
+#1.1
+#@{"open" = "[FileName] opens a file"; "fcopy" = "[FileName],<FileName> [Destination] copy a file"; "rename" = "[FileName] [NewName] renames a file"; "remove" = "[FileName],<FileName> removes a file"; "zip" = "[FileName],<FileName> [ArchiveName] adds a file to an archive"; "unzip" = "[FileName] [FolderName] extracts a file form an archive"; "setwallpaper" = "[FileName] sets the desktop background"; "nav" = "<dir / back> navigates trough the file system"}
+#"cd $env:USERPROFILE\Desktop"
 
-function open ($file)
+#this part is by ChatGPT cuz Im ass lol
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class Wallpaper {
+        [DllImport("user32.dll", CharSet=CharSet.Auto)]
+        static extern Int32 SystemParametersInfo(UInt32 uiAction, UInt32 uiParam, String pvParam, UInt32 fWinIni);
+        public static void Set(String path) {
+            SystemParametersInfo(0x0014, 0, path, 0x01 | 0x02);
+        }
+    }
+"@
+
+function open ($Item, $OpenWith)
 {
-	$file = $file.Replace("~", " ")
-	
-	if (Test-Path $file)
+	$web = [bool](Invoke-Command { try { Invoke-WebRequest -Uri $Item } catch { } })
+	if ((Test-Path $Item) -or $web)
 	{
-		explorer $file
-		WriteTCPMessage ("`n$file Opened!`n")
+	
+		$Item = $Item.Replace("~", " ")
+		if ($web -and !$Item.Contains("www.")) {$Item = ("www." + $Item)}
+		if ($web -and !$Item.Contains(":\\")) {$Item = ("http:\\" +$Item)}
+		
+		if ($OpenWith) { Start-Process $OpenWith (Get-Item $Item).FullName }
+		else { explorer $Item }
+		WriteTCPMessage ("`n$Item Opened!`n")
 	}
-	else { WriteTCPMesage "`nFile Not Found!`n" }
+	else { WriteTCPMesage "`nItem Not Found!`n" }
 	
 	Remove-Variable file -ErrorAction SilentlyContinue
 }
@@ -22,6 +40,7 @@ function fcopy ($files, $destination)
 	$files = $files.Replace("~", " ")
 	$files = $files.Split(",")
 	$destination = $destination.Replace("~", " ")
+	
 	try
 	{
 		if ((Get-Item $destination).Extension -ne "") { Write-Error "" }
@@ -54,18 +73,19 @@ function remove ($files)
 		Remove-Item -Path $files -Force
 		WriteTCPMessage "`nSucessfully Removed!`n"
 	}
-	catch {WriteTCPMessage "`nRemove Failed!`n"}
-	Remove-Variable files -ErrorAction SilentlyContinue	
+	catch { WriteTCPMessage "`nRemove Failed!`n" }
+	Remove-Variable files -ErrorAction SilentlyContinue
 }
 
-function zip ($files, $zipname, [switch]$compress)
+function zip ($files, $zipname, [switch]$Compress)
 {
 	$files = $files.Replace("~", " ")
 	$zipname = $zipname.Replace("~", " ")
 	$files = $files.Split(",")
+		
 	try
 	{
-		Compress-Archive -Path $files -DestinationPath $destination -CompressionLevel (if ($compress) { Optimal } else { NoCompression })
+		Compress-Archive -Path $files -DestinationPath $zipname -CompressionLevel (Invoke-Command { if ($Compress) { "Optimal" } else { "NoCompression" } })
 		WriteTCPMessage "`nSucessfully Compressed To $zipname!`n"
 	}
 	catch { WriteTCPMessage "`nFailed Compressing!`n" }
@@ -79,8 +99,8 @@ function unzip ($file, $folder)
 	
 	try
 	{
-		Expand-Archive -Path $file -DestinationPath "$PSCommandPath\$destination"
-		WriteTCPMessage "`nDecompressed in $destination`n"
+		Expand-Archive -Path $file -DestinationPath $folder
+		WriteTCPMessage "`nDecompressed in $folder`n"
 	}
 	catch { WriteTCPMessage "`nDecompress Failed!" }
 	Remove-Variable file, folder -ErrorAction SilentlyContinue
@@ -90,12 +110,25 @@ function setwallpaper ($file)
 {
 	try
 	{
-		$file = $file.Replace("~", " ")
-		$file = (Get-Item $file).FullName
-		Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\' -Name Wallpaper -Value $file
-		rundll32.exe user32.dll, UpdatePerUserSystemParameters
-		WriteTCPMessage "`nWallpaper Set!`n"
+		[Wallpaper]::Set($file)
+		WriteTCPMessage "`nSucessfully Set Wallpaper!`n"
 	}
 	catch { WriteTCPMessage "`nFailed Setting Wallpaper!" }
 	Remove-Variable file -ErrorAction SilentlyContinue
+}
+
+function nav ($Action)
+{
+	try { $Action = $Action.Replace("~", " ") } catch {}
+	try
+	{
+		if (!$Action) { $Action = Get-Location }
+		if ($Action -eq "back") { $Action = Split-Path (Get-Location) }
+		if ($Action -in (Get-ChildItem).Name) { $Action = (Get-Item $Action).FullName }
+		
+		Set-Location $Action
+		WriteTCPMessage ((Get-Location | Out-String) + (Get-ChildItem | Select-Object Name, LastWriteTime | Out-String).Replace("LastWriteTime", "Last Opened"))
+		
+	}
+	catch { WriteTCPMessage "`nItem Not Found!`n" }
 }
