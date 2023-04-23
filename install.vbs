@@ -73,7 +73,7 @@ End If
 WScript.StdOut.Write("OK" & vbNewLine & vbNewLine)
 
 If Run Then
-    WScript.StdOut.Write("Starting RST...")
+    WScript.StdOut.Write("Starting...")
     WShell.Run("loader.vbs") , 0
 
     WScript.StdOut.Write("OK" & vbNewLine & vbNewLine)
