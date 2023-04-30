@@ -1,7 +1,20 @@
-#MiniApps
-#1.1
-#@{"message" = "[box/notepad] [Message] <slow> displays your message"; "playsound" = "[FileName] plays a wav hidden"; "mouse" = "[lock, unlock]"}
-#""
+#n MiniApps
+#v 2.0
+#hStart message
+#
+#	[box] [Message] writes a message with Windows MessageBox
+#	[notepad] [Message] writes a message in notepad
+#	[notepad] [Message] <slow> writes it slowly
+#hEnd
+#hStart playsound
+#
+#	[FileName] plays a .wav hidden
+#hEnd
+#hStart mouse
+#
+#	[lock] locks the mouse at 0 0
+#	[unlock] unlocks the mouse
+#hEnd
 
 function message ($style, $message, [switch]$slow)
 {
