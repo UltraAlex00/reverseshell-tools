@@ -1,9 +1,19 @@
-#ClearPromt
-#1.0
-#@{"clpr" = "cleans the listener window"}
-#WriteTCPMessage ("`n"*29) -NoCommand
+#n ClearPromt
+#v 2.0
+#load WriteTCPMessage ("`n"*29) -NoCommand -NoNewLine
+#hStart clpr
+# - clears the command promt (29 lines)
+#	<full> (40 lines)
+#	<Lines> writes specific number of lines
+#hEnd
 
-function clpr 
+function clpr ($argument)
 {
-	WriteTCPMessage ("`n"*29)
+	if ($argument -eq "full") {WriteTCPMessage ("`n"*40) }
+	elseif (!$argument) { WriteTCPMessage ("`n"*29) }
+	else 
+	{
+		try { WriteTCPMessage ("`n"*[int]$argument) }
+		catch { WriteTCPMessage "`nInvalid Command!`n" }
+	}
 }
