@@ -1,7 +1,50 @@
-#DesktopUtilityCore
-#1.1
-#@{"open" = "[FileName] opens a file"; "fcopy" = "[FileName],<FileName> [Destination] copy a file"; "rename" = "[FileName] [NewName] renames a file"; "remove" = "[FileName],<FileName> removes a file"; "zip" = "[FileName],<FileName> [ArchiveName] adds a file to an archive"; "unzip" = "[FileName] [FolderName] extracts a file form an archive"; "setwallpaper" = "[FileName] sets the desktop background"; "nav" = "<dir / back> navigates trough the file system"}
-#"cd $env:USERPROFILE\Desktop"
+#n DesktopUtilityCore
+#v 2.0
+
+#hStart open
+#
+#	[FileName] opens a file
+#	[FileName] <App> opens a file with an app
+#	[Uri] opens a website
+#hEnd
+#hStart fcopy
+#
+#	[FileName] [Destination] copy a file
+#	[FileName],<FileName> copy multiple files
+#hEnd
+#hStart rename
+#
+#	[FileName] [NewName] renames a file
+#hEnd
+#hStart remove
+#
+#	[FileName] removes a file
+#	[FileName],<NewName> removes multiple files
+#hEnd
+#hStart zip
+#
+#	[FileName] [ArchiveName] adds a file to an archive
+#	[FileName],<FileName> adds multiple files
+#hEnd
+#hStart unzip
+#
+#	[FileName] [FolderName] extracts a file
+#hEnd
+#hStart setwallpaper
+#
+#	[FileName] sets the desktop background
+#hEnd
+#hStart nav
+# - shows the current directory
+#	<FolderName> navigates to an directory
+#	<back> navigates back
+#hEnd
+#hStart minimize
+# - minimizes all windows to the taskbar
+#	<undo> - restores them
+#hEnd
+
+#load cd $env:USERPROFILE\Desktop
 
 #this part is by ChatGPT cuz Im ass lol
 Add-Type @"
@@ -24,7 +67,7 @@ function open ($Item, $OpenWith)
 	
 		$Item = $Item.Replace("~", " ")
 		if ($web -and !$Item.Contains("www.")) {$Item = ("www." + $Item)}
-		if ($web -and !$Item.Contains(":\\")) {$Item = ("http:\\" +$Item)}
+		if ($web -and !$Item.Contains("://")) {$Item = ("http://" +$Item)}
 		
 		if ($OpenWith) { Start-Process $OpenWith (Get-Item $Item).FullName }
 		else { explorer $Item }
@@ -110,6 +153,9 @@ function setwallpaper ($file)
 {
 	try
 	{
+		$file = $file.Replace("~", " ")
+		$file = (Get-Item $file).FullName
+		
 		[Wallpaper]::Set($file)
 		WriteTCPMessage "`nSucessfully Set Wallpaper!`n"
 	}
@@ -131,4 +177,24 @@ function nav ($Action)
 		
 	}
 	catch { WriteTCPMessage "`nItem Not Found!`n" }
+	Remove-Variable Action -ErrorAction SilentlyContinue
+}
+
+function minimize ($undo)
+{
+	$oshell = New-Object -ComObject Shell.Application
+
+	if (!$undo)
+	{ 
+		$oshell.MinimizeAll()
+		WriteTCPMessage "`nAll Windows Minimized!`n" 
+	}
+	elseif ($undo -eq "undo")
+	{
+		$oshell.UndoMinimizeALL()
+		WriteTCPMessage "`nAll Windows Restored!`n"
+	}
+	else {WriteTCPMessage "`nInvalid Command!`n"}
+	
+	Remove-Variable undo, oshell -ErrorAction SilentlyContinue
 }
