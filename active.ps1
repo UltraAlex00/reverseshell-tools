@@ -224,7 +224,6 @@ Internal:
 	<update> - updates to the latest version
 
 /restart - restarts the script
-	 - sets the script as autorun
 	 - ends the connection but starts a new one
 
 External:
