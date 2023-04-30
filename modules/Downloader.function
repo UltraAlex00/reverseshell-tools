@@ -1,7 +1,9 @@
-﻿#Downloader
-#1.1
-#@{"download" = "[Uri] [OutFileName] Downloads a file from the web"}
-#""
+#n Downloader
+#v 2.0
+#hStart download
+#
+#	[Uri] [OutFileName] Download a file from the web
+#hEnd
 
 function download ($downloaduri, $downloadfile)
 {
